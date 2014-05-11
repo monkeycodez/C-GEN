@@ -72,15 +72,17 @@ const char *to_prts(lua_State *l, char *line){
 	size_t len = strlen(line);
 	size_t i = 1, idx = 0;
 	for(; i < len; i++){
+		lua_checkstack(l, 5);
 		if(*(line + i) == '%'){
 			if(*(line + i + 1) == '%'){
 				luaL_addchar(&b, '%');
 				continue;
 			}
 			luaL_addstring(&b, "\" .. ");
-			idx = strchr(line + i + 1, '%') - line;
+			idx = strcspn(line + i + 1, "%");
 			luaL_addlstring(&b, line + i + 1, idx);
 			luaL_addstring(&b, " .. \"");
+			i += idx + 1;
 		}else if(*(line + i) == '\"'){
 			luaL_addstring(&b, "\\\"");
 		}else{
@@ -96,7 +98,7 @@ const char *to_prts(lua_State *l, char *line){
 	return s;
 }
 
-void eval(lang_f cb){
+void eval(lang_f cb, int print_breaks){
 	char *line = rline(f_in);
 	int val = 0, mode = BEGIN_EVAL;
 	lua_State *l = init_lua();
@@ -105,7 +107,9 @@ void eval(lang_f cb){
 	val = (cb)(line);
 	if(val == END_EVAL){
 		mode = END_EVAL;
-		OUT(line);
+		if(print_breaks){
+			OUT(line);
+		}
 		free(line);
 		line = rline(f_in);
 	}else{
@@ -116,7 +120,9 @@ void eval(lang_f cb){
 		switch(val){
 			case BEGIN_EVAL:
 				mode = BEGIN_EVAL;
-				OUT(line);
+				if(print_breaks){
+					OUT(line);
+				}
 				free(line);
 				line = NULL;
 				luaL_buffinit(l, &buf);
@@ -124,6 +130,9 @@ void eval(lang_f cb){
 			case END_EVAL:
 				mode = END_EVAL;
 				luaL_pushresult(&buf);
+				if(!print_breaks){
+					line = NULL;
+				}
 				run_buf(l);
 				break;
 			case NO_ACTION:
@@ -137,8 +146,10 @@ void eval(lang_f cb){
 		}else if(mode == BEGIN_EVAL){
 			if(*line == ','){
 				luaL_addstring(&buf, to_prts(l, line));
+				luaL_addchar(&buf, '\n');
 			}else{
 				luaL_addstring(&buf, line);
+				luaL_addchar(&buf, '\n');
 			}
 		}
 		free(line);

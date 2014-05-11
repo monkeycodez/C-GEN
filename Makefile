@@ -1,5 +1,5 @@
 CFLAGS = -g -Wall -std=c99
-LIBS = -Iinclude -llua5.1
+LIBS = -Iinclude `pkg-config lua5.1 --cflags --libs`
 
 SRCS=$(wildcard src/**/*.c src/*.c)
 

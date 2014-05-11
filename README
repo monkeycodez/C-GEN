@@ -1,0 +1,60 @@
+C-GEN:	The easy code generation tool!
+	C-GEN is designed to autogenerate boring, repetitive code. 
+	Simply write some Lua, and the power of C-GEN will spit
+	 out code!
+
+USAGE:
+	cgen [OPTIONS] SOURCE [TARGET]
+	Ommiting the target will use in-place mode, where SOURCE is
+	 modified with the output.
+	Options:
+		-p - use python style breaks
+		-c - use c-style breaks (DEFAULT)
+		-b - output breaks
+SYNTAX:
+	Normal Lua syntax, with a twist:  lines that start with a ','
+	 will be directly outputed.  Putting "%i%" will insert the
+	 value of "i" in the output.  Ex:
+	
+		,Hello World!
+		local i = 0
+		while i < 2 do
+		,HELLO %i%
+			i = i + 1
+		end
+	Outputs:
+		Hello World!
+		HELLO 0
+		HELLO 1
+		HELLO 2
+	
+BREAKS:
+	Want to have a large block of code directly outputed without
+	 any variables interleaved and without typing ',' too often?
+	 Use breaks to turn scripting on and off! Ex:
+
+	 //@END
+	 this will be directly pasted
+	 ,this will also be pasted
+	 //@BEGIN
+	 ,this will be scripted
+
+	Outputs:
+		this will be directly pasted
+	 	,this will also be pasted
+		this will be scripted
+
+BREAKSTYLE:
+	Using a non-c-style language? Use -p to change to python-style
+	 breaks: "##@END" and "##@BEGIN"
+
+DEBUG OUTPUT:
+	In C-GEN, the Lua's print statement is redirected to the output file,
+	 so use "debug" to print to stdout.
+
+COMPILING:
+	C-GEN will work with most lua5.*'s, but is only supported on 
+	 lua5.1.  To compile, simply run "make"
+
+
+
