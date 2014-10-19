@@ -37,6 +37,9 @@ extern FILE* f_out;
 
 extern FILE* f_in;
 
+extern int p_debug;
+extern int p_vdebug;
+
 
 char *rline(FILE* file);
 

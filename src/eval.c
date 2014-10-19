@@ -49,6 +49,13 @@ lua_State *init_lua(){
 }
 
 void run_buf(lua_State *l){
+	if(p_debug){
+		char *tmp = NULL;
+		size_t tmps = 0;
+		tmp = lua_tolstring(l, 1, &tmps);
+		printf("%d: %s", tmps, tmp);
+	}
+
 	lua_getglobal(l, "loadstring");
 	lua_pushvalue(l, -2);
 	lua_remove(l, -3);
@@ -68,7 +75,7 @@ luaL_Buffer b;
 
 const char *to_prts(lua_State *l, char *line){
 	luaL_buffinit(l, &b);
-	luaL_addstring(&b, "print(\"");
+	luaL_addstring(&b, "\nprint(\"");
 	size_t len = strlen(line);
 	size_t i = 1, idx = 0;
 	for(; i < len; i++){
@@ -89,12 +96,15 @@ const char *to_prts(lua_State *l, char *line){
 			luaL_addchar(&b, *(line + i));
 		}
 	}
-	luaL_addstring(&b, "\")");
+	luaL_addstring(&b, "\")\n");
 	luaL_pushresult(&b);
 	const char *str = lua_tolstring(l, -1, &len);
 	char *s = malloc(sizeof(char) * len);
 	memcpy(s, str, len);
 	lua_pop(l, 1);
+	if(p_vdebug){
+		printf("%s", s);
+	}
 	return s;
 }
 

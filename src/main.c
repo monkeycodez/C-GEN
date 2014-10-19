@@ -42,6 +42,8 @@
 
 FILE* f_in = NULL;
 FILE* f_out = NULL;
+int p_debug = 0;
+int p_vdebug = 0;
 
 _IS_SWITCH(python, PYTHON_BEGIN, PYTHON_END)
 _IS_SWITCH(c, C_BEGIN, C_END)
@@ -62,7 +64,7 @@ int main(int argc, char *argv[]){
 	lang_f langfunc = NULL;
 	opterr = 0;
 
-	while((c = getopt(argc, argv, "pbcH")) != -1){
+	while((c = getopt(argc, argv, "pdbcH")) != -1){
 		switch(c){
 			case 'p':
 				langfunc = python_is_switch;
@@ -75,6 +77,10 @@ int main(int argc, char *argv[]){
 				break;
 			case 'H':
 				langfunc = html_is_switch;
+				break;
+			case 'v': p_vdebug = 1;
+			case 'd':
+				p_debug = 1;
 				break;
 			case '?':
 				fprintf(stderr, "Unknown option '-%c'\n", optopt);
