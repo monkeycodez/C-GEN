@@ -23,27 +23,29 @@
 
 #include "cgen.h"
 
+#define HTML_BEGIN		"<!--@BEGIN-->"
+#define HTML_END		"<!--@END-->"
+
+#define C_BEGIN			"//@BEGIN"
+#define C_END			"//@END"
+
+#define PYTHON_BEGIN		"##@BEGIN"
+#define PYTHON_END		"##@END"
+
+#define _IS_SWITCH(L, B, E)	int L##_is_switch(char *line){ 		\
+					if(strcmp(line, B) == 0) 	\
+						return BEGIN_EVAL;	\
+					else if (strcmp(line, E) == 0)  \
+						return END_EVAL;	\
+					return NO_ACTION;		\
+				}					
+
 FILE* f_in = NULL;
 FILE* f_out = NULL;
 
-int c_is_switch(char *line){
-	if(strcmp(line, "//@BEGIN") == 0){
-		return BEGIN_EVAL;
-	}else if(strcmp(line, "//@END") == 0){
-		return END_EVAL;
-	}
-	return NO_ACTION;
-}
-
-int python_is_switch(char *line){
-	if(strcmp(line, "##@BEGIN") == 0){
-		return BEGIN_EVAL;
-	}
-	if(strcmp(line, "##@END") == 0){
-		return END_EVAL;
-	}
-	return NO_ACTION;
-}
+_IS_SWITCH(python, PYTHON_BEGIN, PYTHON_END)
+_IS_SWITCH(c, C_BEGIN, C_END)
+_IS_SWITCH(html, HTML_BEGIN, HTML_END)
 
 int none_lang_eval(char *line){
 	return NO_ACTION;
@@ -51,25 +53,28 @@ int none_lang_eval(char *line){
 
 
 int main(int argc, char *argv[]){
-	int lang = LANG_C;
 	int inp = 0;
 	int c = 0;
 	int prtbk = 0;
 	char *in = NULL;
 	char *out = NULL;
 
+	lang_f langfunc = NULL;
 	opterr = 0;
 
-	while((c = getopt(argc, argv, "pbc")) != -1){
+	while((c = getopt(argc, argv, "pbcH")) != -1){
 		switch(c){
 			case 'p':
-				lang = LANG_PYTHON;
+				langfunc = python_is_switch;
 				break;
 			case 'b':
 				prtbk = 1;
 				break;
 			case 'c':
-				lang = LANG_C;
+				langfunc = c_is_switch;
+				break;
+			case 'H':
+				langfunc = html_is_switch;
 				break;
 			case '?':
 				fprintf(stderr, "Unknown option '-%c'\n", optopt);
@@ -107,16 +112,6 @@ int main(int argc, char *argv[]){
 		fprintf(stderr, "ERROR: cannot open file %s\n", in);
 	}
 	
-	lang_f langfunc = NULL;
-	//Select lang function
-	switch(lang){
-		case LANG_C:
-			langfunc = &c_is_switch;
-			break;
-		case LANG_NONE:
-		default:
-			langfunc = &none_lang_eval;
-	}
 	eval(langfunc, prtbk);
 	fclose(f_in);
 	if(inp){

@@ -31,10 +31,6 @@
 #define END_EVAL   2
 #define NO_ACTION  0
 
-#define LANG_NONE  0
-#define LANG_C	   1
-#define LANG_PYTHON 2
-
 typedef int (*lang_f)(char *line);
 
 extern FILE* f_out;
